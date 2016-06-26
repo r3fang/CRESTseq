@@ -1,0 +1,52 @@
+#!/usr/bin/env Rscript
+
+# Rscript crest_peak.R INPUT=\'low/crest/crest.bin.high.txt\' PREFIX=\'demo\' MIN_COV=3 MIN_WIDTH=1000 FDR=0.05 
+
+# PART I - ARGUMENTS
+args <- commandArgs(trailingOnly = TRUE)
+if(length(args) < 5){
+    stop("too few arguments.")
+}else{
+    for(i in 1:length(args)){
+		eval(parse(text=args[[i]]))
+    }
+}
+
+if(!exists("INPUT")) stop("argument INPUT missing")
+if(!exists("PREFIX")) stop("argument PREFIX missing")
+if(!exists("MIN_COV")) stop("argument MIN_COV missing")
+if(!exists("MIN_WIDTH")) stop("argument MIN_WIDTH missing")
+if(!exists("FDR")) stop("argument FDR missing")
+if(!file.exists(INPUT)) stop("file INPUT not exists")
+
+
+# PART II - check if packages exists, if not, install
+list.of.packages <- c("GenomicRanges", "siggenes")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)){
+	source("http://bioconductor.org/biocLite.R")
+	biocLite(new.packages, lib.loc = "~/R/local_library", lib="~/R/local_library")
+}
+
+# import pakcage
+suppressMessages(library(GenomicRanges))
+suppressMessages(library(siggenes))
+
+# PART III main program
+bins <- read.table(INPUT, head=TRUE)
+if(length(which(colnames(bins) == c("group_id", "items_in_group", "lo_value", "p", "FDR", "goodsgrna"))) != ncol(bins))  stop("column name of INPUT is not valid")
+bins.tmp <- do.call(rbind, strsplit(as.character(bins$group_id), split=":|-"))
+bins.gr  <- GRanges(seqnames="chr6", IRanges(as.numeric(as.character(bins.tmp[,2])), as.numeric(as.character(bins.tmp[,3]))), score=-log(bins$FDR), FDR=bins$FDR, goodsgrna=bins$goodsgrna)
+
+write.table(as.data.frame(bins.gr)[,c(1,2,3,6)], file = paste(PREFIX, ".bdg", sep=""), append = FALSE, quote = FALSE, sep = "\t",
+                 eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+                 col.names = FALSE, qmethod = c("escape", "double"),
+                 fileEncoding = "")
+
+peaks.gr <- reduce(bins.gr[which(bins.gr$FDR <= FDR & bins.gr$goodsgrna >= MIN_COV)])
+peaks.gr[which(width(peaks.gr) < MIN_WIDTH)] <- resize(peaks.gr[which(width(peaks.gr) < MIN_WIDTH)], width=MIN_WIDTH, fix="center")
+write.table(as.data.frame(peaks.gr)[,c(1,2,3)], file =  paste(PREFIX, ".bed", sep=""), append = FALSE, quote = FALSE, sep = "\t",
+                 eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+                 col.names = FALSE, qmethod = c("escape", "double"),
+                 fileEncoding = "")
+

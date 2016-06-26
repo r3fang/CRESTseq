@@ -235,16 +235,24 @@ int ReadFile(char *fileName, GROUP_STRUCT *groups, int maxGroupNum, int *groupNu
         i=groupNames[vsubwords[k]];
   			assert(i<tmpGroupNum);
   		
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// modified by Rongxin Fang (r3fang@ucsd.edu) at 02/06/16
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		// group is the genomic bins, 
         //save group name(gene name)
   			//strcpy(groups[i].items[groups[i].itemNum].name,tmpItemName);
   			strcpy(groups[i].items[groups[i].itemNum].name,vwords[0].c_str());
   			groups[i].items[groups[i].itemNum].value = tmpValue;
   			groups[i].items[groups[i].itemNum].prob= sgrnaProbValue;
   			groups[i].items[groups[i].itemNum].listIndex = j;
-  			groups[i].items[groups[i].itemNum].isChosen= sgrnaChosen;
+  			groups[i].items[groups[i].itemNum].isChosen= 1;
+  			//groups[i].items[groups[i].itemNum].isChosen= sgrnaChosen;
   			groups[i].itemNum ++;
       	assert(groups[i].itemNum <=groups[i].maxItemNum);
-  		
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ 
     }//end subwordnum 
 		
 		totalItemNum++;

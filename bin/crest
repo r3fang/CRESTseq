@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+set -e
+
+# PART I check weather softwares installed
+command -v R >/dev/null 2>&1 || { echo >&2 "crest requires R but it is not installed. Aborting."; exit 1; }
+command -v crest_edger >/dev/null 2>&1 || { echo >&2 "crest requires crest_edger but it is not installed. Aborting."; exit 1; }
+command -v RRA >/dev/null 2>&1 || { echo >&2 "crest requires RRA but it is not installed. Aborting."; exit 1; }
+
+# PART II usage info
+usage(){
+cat << EOF
+
+Program: crest (Cis Regulatory Element Scan by Tiling-deleltion)
+Version: 06.25.2016
+Contact: Rongxin Fang <r3fang@ucsd.edu>
+Ren Lab: http://bioinformatics-renlab.ucsd.edu/rentrac/
+
+usage: ${0##*/} [-h] [-i INPUT] [-r chr1:1-1000] [-o PREFIX] [-m 5] [-s 50] [-p 0.01]
+
+Example:
+crest -i data/data.txt -r chr6:30132134-32138339 -o demo.txt
+
+Options:    
+	-h, --help                  show this help message and exit.
+	-i  INPUT                   input crest matrix.
+	-r  INQUIRE_REGION          region that crest-seq performed against.
+	-o  PREFIX                  prefix of outout file.
+	-m  MIN_CPM                 min CPM (count per million reads) required [5].
+	-s  BIN_SIZE                split screened region into a set of bins of this size [50].
+	-c  MIN_COV                 min number of sgRNA pairs required to span a bin [3].
+	-p  FDRCUTOFF               FDR cutoff [0.05].
+	-l  MIN_WIDTH               a peak will be extended to MIN_WIDTH if shorter [1000].
+
+Note: To use crest, please be sure that the input matrix is in the required format.  
+EOF
+} 
+
+# PART III default params
+BIN_SIZE=50
+MIN_CPM=5
+FDRCUTOFF=0.05
+MIN_WIDTH=1000
+MIN_COV=3
+# PART IV receiving arguments
+while getopts ":i:r:o:m:s:c:p:l:" opt;
+do
+	case "$opt" in
+		i) INPUT=$OPTARG;;
+		r) INQUIRE_REGION=$OPTARG;;
+		o) PREFIX=$OPTARG;;
+		m) MIN_CPM=$OPTARG;;
+		s) BIN_SIZE=$OPTARG;;
+		c) MIN_COV=$OPTARG;;
+		p) FDRCUTOFF=$OPTARG;;
+		l) MIN_WIDTH=$OPTARG;;
+		\?) usage
+			echo "input error"
+			exit 1
+			;;
+	esac
+done
+
+if [ $# -lt 6 ] ; then
+   usage
+   echo "error: too few arguments"
+   exit 1
+fi
+
+if [ -z ${INPUT+x} ]; then 
+	echo "error: missing variable -i INPUT" >&2;
+	exit 1;
+fi
+# check if files exist
+if [ ! -f $INPUT ]; then
+	usage
+    echo "error: input file -i '$INPUT' not exists.";
+	exit 1;
+fi
+
+if [ -z ${INQUIRE_REGION+x} ]; then 
+	echo "error: missing variable -r INQUIRE_REGION" >&2;
+	exit 1;
+fi
+
+if [ -z ${PREFIX+x} ]; then 
+	echo "error: missing variable -o PREFIX" >&2;
+	exit 1;
+fi
+
+if [ -z ${MIN_CPM+x} ]; then 
+	echo "error: missing variable -m MIN_CPM" >&2;
+	exit 1;
+fi 
+
+if [ -z ${BIN_SIZE+x} ]; then 
+	echo "error: missing variable -s BIN_SIZE" >&2;
+	exit 1;
+fi
+
+if [ -z ${MIN_COV+x} ]; then 
+	echo "error: missing variable -c MIN_COV" >&2;
+	exit 1;
+fi
+
+if [ -z ${FDRCUTOFF+x} ]; then 
+	echo "error: missing variable -p FDRCUTOFF" >&2;
+	exit 1;
+fi
+
+if [ -z ${MIN_WIDTH+x} ]; then 
+	echo "error: missing variable -l MIN_WIDTH" >&2;
+	exit 1;
+fi
+
+re='^chr[0-9a-zA-Z_]*:[0-9]+-[0-9]+'
+if ! [[ $INQUIRE_REGION =~ $re ]] ; then
+   echo "error: -s '$INQUIRE_REGION' invalid format" >&2;
+   exit 1;
+fi
+
+if [ -z ${PREFIX+x} ]; then 
+	echo "error: missing variable -o PREFIX" >&2;
+	exit 1;
+fi
+
+# check if input type
+re='^[0-9]+$'
+if ! [[ $BIN_SIZE =~ $re ]] ; then
+   echo "error: -s '$BIN_SIZE' Not a number" >&2;
+   exit 1;
+fi
+
+if ! [[ $MIN_CPM =~ $re ]] ; then
+   echo "error: -m '$MIN_CPM' Not a number" >&2;
+   exit 1;
+fi
+
+if ! [[ $MIN_COV =~ $re ]] ; then
+   echo "error: -m '$MIN_COV' Not a number" >&2;
+   exit 1;
+fi
+
+if ! [[ $MIN_WIDTH =~ $re ]] ; then
+   echo "error: -m '$MIN_WIDTH' Not a number" >&2;
+   exit 1;
+fi
+
+re='^0.?[0-9]+'
+if ! [[ $FDRCUTOFF =~ $re ]] ; then
+   echo "error: -p '$FDRCUTOFF' Not a valid number, must between [0, 1]" >&2;
+   exit 1;
+fi
+
+echo $0 $* 2>&1 | tee $PREFIX.log 
+echo 2>&1 | tee -a $PREFIX.log
+echo INPUT=$INPUT 2>&1 | tee -a $PREFIX.log
+echo INQUIRE_REGION=$INQUIRE_REGION 2>&1 | tee -a $PREFIX.log
+echo PREFIX=$PREFIX 2>&1 | tee -a $PREFIX.log
+echo BIN_SIZE=$BIN_SIZE 2>&1 | tee -a $PREFIX.log
+echo MIN_CPM=$MIN_CPM 2>&1 | tee -a $PREFIX.log
+echo FDRCUTOFF=$FDRCUTOFF 2>&1 | tee -a $PREFIX.log
+echo 2>&1 | tee -a $PREFIX.log
+
+if [ -d $PREFIX\_tmp ]; then
+	rm -r $PREFIX\_tmp
+fi
+
+mkdir $PREFIX\_tmp
+crest_edger INQURE_REGION=\'$INQUIRE_REGION\' FIN_NAME=\'$INPUT\' GROUPS="c(2,2,2,2,2,1,1)" FOUT_NAME=\"$PREFIX\_tmp/$PREFIX.txt\" MIN_CPM=$MIN_CPM BIN_SIZE=$BIN_SIZE
+RRA -i $PREFIX\_tmp/$PREFIX.txt -o $PREFIX\_tmp/$PREFIX.pvalue.txt -p 0.1 >/dev/null
+crest_peak_call INPUT=\'$PREFIX\_tmp/$PREFIX.pvalue.txt\' PREFIX=\'$PREFIX\' MIN_COV=$MIN_COV MIN_WIDTH=$MIN_WIDTH FDR=$FDRCUTOFF
+rm -r $PREFIX\_tmp
+
+

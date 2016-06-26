@@ -1,11 +1,10 @@
 #!/usr/bin/env Rscript
 
-# crest_edger INQURE_REGION=\'chr6:30132134-32138339\' GROUPS="c(2,2,2,2,2,1,1)" FIN_NAME=\"data/data.txt\" FOUT_NAME=\"TMP\" MIN_CPM=5
+# crest_edger INQURE_REGION=\'chr6:30132134-32138339\' GROUPS="c(2,2,2,2,2,1,1)" FIN_NAME=\"data/data.txt\" FOUT_NAME=\"TMP\" MIN_CPM=5 BIN_SIZE=50
 
 # PART I - ARGUMENTS
 args <- commandArgs(trailingOnly = TRUE)
-print(args)
-if(length(args) < 4){
+if(length(args) < 6){
     stop("too few arguments.")
 }else{
     for(i in 1:length(args)){
@@ -13,9 +12,8 @@ if(length(args) < 4){
     }
 }
 
-if(!exists("MIN_CPM")) MIN_CPM=5
-if(!exists("CUTOFF_PVALUE")) CUTOFF_PVALUE=0.05
-if(!exists("BIN_SIZE")) BIN_SIZE=50
+if(!exists("MIN_CPM")) stop("argument MIN_CPM missing")
+if(!exists("BIN_SIZE")) stop("argument BIN_SIZE missing")
 if(!exists("INQURE_REGION")) stop("argument INQURE_REGION missing")
 if(!exists("FIN_NAME")) stop("argument FIN_NAME missing")
 if(!exists("FOUT_NAME")) stop("argument FOUT_NAME missing")
@@ -30,7 +28,7 @@ if(length(new.packages)){
 	biocLite(new.packages, lib.loc = "~/R/local_library", lib="~/R/local_library")
 }
 
-list.of.packages <- c("locfit", "stringr", "optparse")
+list.of.packages <- c("locfit", "stringr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)){
 	install.packages(new.packages, lib.loc = "~/R/local_library", lib="~/R/local_library")
