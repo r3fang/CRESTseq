@@ -4,23 +4,24 @@ set -e
 # PART I check weather softwares installed
 command -v R >/dev/null 2>&1 || { echo >&2 "crest requires R but it is not installed. Aborting."; exit 1; }
 command -v crest_edger >/dev/null 2>&1 || { echo >&2 "crest requires crest_edger but it is not installed. Aborting."; exit 1; }
+command -v crest_peak_call >/dev/null 2>&1 || { echo >&2 "crest requires crest_peak_call but it is not installed. Aborting."; exit 1; }
 command -v RRA >/dev/null 2>&1 || { echo >&2 "crest requires RRA but it is not installed. Aborting."; exit 1; }
 
 # PART II usage info
 usage(){
 cat << EOF
 
-Program: crest (Cis Regulatory Element Scan by Tiling-deleltion)
+Program: crest (CREST-seq analysis pipeline Ren Lab)
 Version: 06.25.2016
 Contact: Rongxin Fang <r3fang@ucsd.edu>
 Ren Lab: http://bioinformatics-renlab.ucsd.edu/rentrac/
 
-usage: ${0##*/} [-h] [-i INPUT] [-r chr1:1-1000] [-o PREFIX] [-m 5] [-s 50] [-p 0.01]
+usage: ${0##*/} [-h] [-i INPUT] [-r chr6:30132134-32138339] [-o PREFIX] [-m 5] [-s 50] [-c 3] [-p 0.05] [-l 1000] 
 
 Example:
-crest -i data/data.txt -r chr6:30132134-32138339 -o demo.txt
+crest -i data/data.txt -r chr6:30132134-32138339 -o demo
 
-Options:    
+Options: 
 	-h, --help                  show this help message and exit.
 	-i  INPUT                   input crest matrix.
 	-r  INQUIRE_REGION          region that crest-seq performed against.
@@ -41,6 +42,7 @@ MIN_CPM=5
 FDRCUTOFF=0.05
 MIN_WIDTH=1000
 MIN_COV=3
+
 # PART IV receiving arguments
 while getopts ":i:r:o:m:s:c:p:l:" opt;
 do
