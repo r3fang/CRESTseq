@@ -12,7 +12,7 @@ usage(){
 cat << EOF
 
 Program: crest (CREST-seq analysis pipeline Ren Lab)
-Version: 06.25.2016
+Version: v06.26.2016
 Contact: Rongxin Fang <r3fang@ucsd.edu>
 Ren Lab: http://bioinformatics-renlab.ucsd.edu/rentrac/
 
@@ -23,27 +23,29 @@ crest -i data/data.txt -r chr6:30132134-32138339 -o demo
 
 Options: 
 	-h, --help                  show this help message and exit.
-	-i  INPUT                   input crest matrix.
-	-r  INQUIRE_REGION          region that crest-seq performed against.
+	-i  INPUT                   input crest-standard matrix.
+	-r  INQUIRE_REGION          region that CREST-seq performed against.
 	-o  PREFIX                  prefix of outout file.
-	-m  MIN_CPM                 min CPM (count per million reads) required [5].
-	-s  BIN_SIZE                split screened region into a set of bins of this size [50].
-	-c  MIN_COV                 min number of sgRNA pairs required to span a bin [3].
-	-p  FDRCUTOFF               FDR cutoff [0.05].
+	-m  MIN_CPM                 sgRNA pairs with CPM (count per million) smaller than
+	                            MIN_CPM will be filtered before analysis [5].
+	-s  BIN_SIZE                screened region INQUIRE_REGION will be partitioned into 
+	                            a set of BIN_SIZE-bp bins [50].
+	-c  MIN_COV                 a bin is considered significant at least MIN_COV pairs span it [2].
+	-p  FDRCUTOFF               FDR cutoff for a significant bin [0.05].
 	-l  MIN_WIDTH               a peak will be extended to MIN_WIDTH if shorter [1000].
 
 Note: To use crest, please be sure that the input matrix is in the required format.  
 EOF
 } 
 
-# PART III default params
+# PART III default parameters
 BIN_SIZE=50
-MIN_CPM=5
+MIN_CPM=3
 FDRCUTOFF=0.05
 MIN_WIDTH=1000
-MIN_COV=3
+MIN_COV=2
 
-# PART IV receiving arguments
+# PART IV read in arguments
 while getopts ":i:r:o:m:s:c:p:l:" opt;
 do
 	case "$opt" in
@@ -167,10 +169,12 @@ if [ -d $PREFIX\_tmp ]; then
 	rm -r $PREFIX\_tmp
 fi
 
-mkdir $PREFIX\_tmp
-crest_edger INQURE_REGION=\'$INQUIRE_REGION\' FIN_NAME=\'$INPUT\' GROUPS="c(2,2,2,2,2,1,1)" FOUT_NAME=\"$PREFIX\_tmp/$PREFIX.txt\" MIN_CPM=$MIN_CPM BIN_SIZE=$BIN_SIZE
-RRA -i $PREFIX\_tmp/$PREFIX.txt -o $PREFIX\_tmp/$PREFIX.pvalue.txt -p 0.1 >/dev/null
-crest_peak_call INPUT=\'$PREFIX\_tmp/$PREFIX.pvalue.txt\' PREFIX=\'$PREFIX\' MIN_COV=$MIN_COV MIN_WIDTH=$MIN_WIDTH FDR=$FDRCUTOFF
-rm -r $PREFIX\_tmp
-
+#mkdir $PREFIX\_tmp
+#crest_edger INQURE_REGION=\'$INQUIRE_REGION\' FIN_NAME=\'$INPUT\' GROUPS="c(2,2,2,2,2,1,1)" FOUT_NAME=\"$PREFIX\_tmp/$PREFIX.txt\" MIN_CPM=$MIN_CPM BIN_SIZE=$BIN_SIZE
+#RRA -i $PREFIX\_tmp/$PREFIX.txt -o $PREFIX\_tmp/$PREFIX.pvalue.txt -p 0.1 >/dev/null
+#crest_peak_call INPUT=\'$PREFIX\_tmp/$PREFIX.pvalue.txt\' PREFIX=\'$PREFIX\' MIN_COV=$MIN_COV MIN_WIDTH=$MIN_WIDTH FDR=$FDRCUTOFF
+#
+## cleanup
+#rm -r $PREFIX\_tmp
+#
 
