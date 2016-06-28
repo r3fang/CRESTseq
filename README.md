@@ -6,7 +6,7 @@
 
 ##Introduction
 
-**crest** is an in-house Bioinformatics pipeline for analyzing CREST-seq.
+**crest** is an in-house Bioinformatics pipeline for CREST-seq analysis.
 
 ```
 $ crest
@@ -37,4 +37,16 @@ Options:
 Note: To use crest, please be sure that the input matrix is in the required format.
 ```
 
+##FAQ
+
+1. **What is crest required input format?**  
+ 
+ |   | T1  | T2 | T3 | T4 | T5 | C1 | C2 |
+ |:------------------:|:-------------:|:-----:|:------:|:-------:|
+ | POS_1 | 257 | 3070 |	2663 | 83 | 3645 |	39 |	41  |
+ | POS_2 | 149 | 2168 |	1773 | 70 | 2530 |	30 |	24  |
+ | POS_3 | 396 | 5262 |	3869 | 169 |	6068 |	57  |	63 |
+ | POS_4 | 332 | 3207 |	2606 | 115 |	4062 |	41  |	37 |
+ | POS_5 | 829 | 8635 |	8256 | 298 |	11884 |	114 |	108 |
+ | POS_6 | 560 | 7432 |	6409 | 280 |	9757 |	106	| 81 |
 
