@@ -186,10 +186,7 @@ if [ -d $PREFIX\_tmp ]; then
 	rm -r $PREFIX\_tmp
 fi
 
-if [ ! -d $PREFIX\_tmp ]; then
-	mkdir $PREFIX\_tmp
-fi
-
+mkdir $PREFIX\_tmp
 #crest_edger INQURE_REGION=\'$INQUIRE_REGION\' FIN_NAME=\'$INPUT\' GROUPS="c(2,2,2,2,2,1,1)" FOUT_NAME=\"$PREFIX\_tmp/$PREFIX.txt\" MIN_CPM=$MIN_CPM BIN_SIZE=$BIN_SIZE
 #RRA -i $PREFIX\_tmp/$PREFIX.txt -o $PREFIX\_tmp/$PREFIX.pvalue.txt -p 0.1 >/dev/null
 #crest_peak_call INPUT=\'$PREFIX\_tmp/$PREFIX.pvalue.txt\' PREFIX=\'$PREFIX\' MIN_COV=$MIN_COV MIN_WIDTH=$MIN_WIDTH FDR=$FDRCUTOFF

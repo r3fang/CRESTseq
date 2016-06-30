@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import optparse
+import re
+
+def main():
+    """ main function """
+    parser = optparse.OptionParser(description='check weather input format is valid.', 
+                                usage='%prog [-h] [-i INPUT]')
+    
+    parser.add_option('-i',
+                      dest="INPUT",
+                      help='input file.'
+                      )
+    options, remainder = parser.parse_args()
+    
+    if options.INPUT:
+        fin_name = options.INPUT
+    else:
+        parser.print_help()
+        exit('error: missing -i arguments;')
+    
+    with open(fin_name, 'r') as fin:
+        cur_head = fin.readline()
+        ncol = len(cur_head.split())
+        for line in fin:
+            elems = line.split()
+            if len(elems) != ncol + 1: exit('error: sample IDs do not match with data')
+            cur_region = elems[0]
+            cur_nums = elems[1:]
+            pattern=re.compile("^chr[0-9a-zA-Z_]*:[0-9]+-[0-9]+\Z")
+            if re.search(pattern, cur_region) == None: exit('error: %s is invalid sgRNA pair name' % cur_region)
+            cur_chrom = cur_region.split(':')[0]
+            [cur_start, cur_end] = cur_region.split(':')[1].split('-')
+            try:
+                cur_start = int(cur_start)
+                cur_end = int(cur_end)
+            except ValueError:
+                exit('error: %s is invalid sgRNA pair name' % cur_region)
+            
+            if cur_start >= cur_end:  exit('error: invalid sgRNA name %s, end is larger than the start' % cur_region)
+            try:
+                map(int, cur_nums)
+            except ValueError:
+                exit('error: has non-integer value\n%s' % line.strip())
+        print("Succeed! %s is in valid crest-standard matrix format!" % fin_name)
+            
+if __name__ == '__main__':
+    main()
+
