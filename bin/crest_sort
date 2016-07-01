@@ -1,6 +1,15 @@
 #!/usr/bin/env Rscript
 
-# PART I - arguments
+# PART I - check if packages already installed, if not exist
+if(!("edgeR" %in% installed.packages()[,"Package"])){
+	stop("R package edgeR not installed")
+}
+suppressMessages(library(edgeR))
+#suppressMessages(library(GenomicRanges))
+#suppressMessages(library(locfit))
+#suppressMessages(library(stringr))
+
+# PART II - load in arguments
 args <- commandArgs(trailingOnly = TRUE)
 if(length(args) < 5){
     stop("too few arguments.")
@@ -15,52 +24,30 @@ if(!exists("TREAT_ID"))   stop("argument TREAT_ID missing")
 if(!exists("CONTROL_ID")) stop("argument CONTROL_ID missing")
 if(!exists("DIR"))        stop("argument DIR missing")
 if(!dir.exists(file.path(DIR))) stop(DIR, " does not exist")
-output_file = paste(DIR, "sgRNA_sorted.txt", sep="/")
+output_file = paste(DIR, "sgRNA_pair_sorted.txt", sep="/")
 
-# PART II - check if packages already installed, if so, load it in, otherwise install
-list.of.packages <- c("edgeR", "GenomicRanges")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)){
-	source("http://bioconductor.org/biocLite.R")
-	biocLite(new.packages, lib.loc = "~/R/local_library", lib="~/R/local_library")
-}
-list.of.packages <- c("locfit", "stringr")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)){
-	install.packages(new.packages, lib.loc = "~/R/local_library", lib="~/R/local_library")
-}
-
-suppressMessages(library(edgeR))
-suppressMessages(library(GenomicRanges))
-suppressMessages(library(locfit))
-suppressMessages(library(stringr))
-
+# PART IV - check input arguments
 if(nrow(data <- read.table(FIN_NAME, head=TRUE, row.names=1))==0) stop("input crest matrix is empty")
 if(length((TREAT_IDs=strsplit(TREAT_ID, ",")[[1]]))==0) stop("argument TREAT_ID must be seperated by comma without space")
 if(length((CONTROL_IDs=strsplit(CONTROL_ID, ",")[[1]]))==0) stop("argument CONTROL_ID must be seperated by comma without space")
 if(length((IDs = c(TREAT_IDs, CONTROL_IDs))) != ncol(data)) stop("TREAT_ID + CONTROL_ID must equal column number with input crest matrix")
 if(length((col_pos = match(TREAT_IDs, colnames(data)))) == 0) stop("argument TREAT_ID must match with column name of input crest-matrix")
 if(length((col_neg = match(CONTROL_IDs, colnames(data)))) == 0) stop("argument CONTROL_ID must match with column name of input crest-matrix")
-
 groups = rep(1, ncol(data))
 groups[col_pos] = 2
 
 if(length(i <- which(rowSums(cpm(data) > MIN_CPM) >= (ncol(data)/3)))) data_filtered <- data[i,]
-
 y <- DGEList(data_filtered, group=factor(groups))
 design <- model.matrix(~factor(groups))
 xglm <- estimateDisp(y, design)
 fit <- glmFit(xglm, design)
 lrt <- glmLRT(fit, coef=2)
-sgRNA <- lrt$table
-sgRNA$score <- sign(sgRNA$logFC) * (log(sgRNA$PValue))
-sgRNA <- sgRNA[order(sgRNA$score),]
-sgRNA$rank <- 1:nrow(sgRNA)
-sgRNA <- sgRNA[order(rownames(sgRNA)),]
-
-write.table(sgRNA, file = output_file, append = FALSE, quote = FALSE, sep = "\t",
+table <- lrt$table
+table$score <- sign(table$logFC) * (log(table$PValue))
+table <- table[order(table$score),]
+table$rank <- 1:nrow(table)
+write.table(table[order(rownames(table)),], file = output_file, append = FALSE, quote = FALSE, sep = "\t",
             eol = "\n", na = "NA", dec = ".", row.names = TRUE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")
-
 
