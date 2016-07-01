@@ -5,7 +5,7 @@ import re
 
 def main():
     """ main function """
-    parser = optparse.OptionParser(description='check weather input format is valid.', 
+    parser = optparse.OptionParser(description='check if input data is valid.', 
                                 usage='%prog [-h] [-i INPUT]')
     
     parser.add_option('-i',
@@ -25,7 +25,7 @@ def main():
         ncol = len(cur_head.split())
         for line in fin:
             elems = line.split()
-            if len(elems) != ncol + 1: exit('error: sample IDs do not match with data')
+            if len(elems) != ncol + 1: exit('error: number of sample IDs does not match with data columns')
             cur_region = elems[0]
             cur_nums = elems[1:]
             pattern=re.compile("^chr[0-9a-zA-Z_]*:[0-9]+-[0-9]+\Z")
@@ -40,9 +40,10 @@ def main():
             
             if cur_start >= cur_end:  exit('error: invalid sgRNA name %s, end is larger than the start' % cur_region)
             try:
-                map(int, cur_nums)
+                cur_nums = map(int, cur_nums)
             except ValueError:
                 exit('error: has non-integer value\n%s' % line.strip())
+            if len([i for i in cur_nums if i < 0]) > 0: exit('error: has negative value\n%s' % line.strip())
         print("Succeed! %s is in valid crest-standard matrix format!" % fin_name)
             
 if __name__ == '__main__':
