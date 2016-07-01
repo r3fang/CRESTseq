@@ -182,11 +182,15 @@ echo valid sgRNA pair min read count \(CPM\): $MIN_CPM 2>&1 | tee -a $PREFIX.log
 echo FDR cutoff: $FDRCUTOFF 2>&1 | tee -a $PREFIX.log
 echo 2>&1 | tee -a $PREFIX.log
 
-if [ -d $PREFIX\_tmp ]; then
-	rm -r $PREFIX\_tmp
+if [ ! -d $PREFIX\_tmp ]; then
+	mkdir $PREFIX\_tmp
 fi
 
-mkdir $PREFIX\_tmp
+echo Step1. rank sgRNA pairs based on it enrichment in the treatment samples
+crest_sort FIN_NAME=\"$INPUT\" TREAT_ID=\"$TREAT_ID\" CONTROL_ID=\"$CONTROL_ID\" MIN_CPM=$MIN_CPM DIR=\"$PREFIX\_tmp\"
+
+echo Step2. split the screend region $INQUIRE_REGION into a set of $BIN_SIZE bp bins and find its overlap pairs
+
 #crest_edger INQURE_REGION=\'$INQUIRE_REGION\' FIN_NAME=\'$INPUT\' GROUPS="c(2,2,2,2,2,1,1)" FOUT_NAME=\"$PREFIX\_tmp/$PREFIX.txt\" MIN_CPM=$MIN_CPM BIN_SIZE=$BIN_SIZE
 #RRA -i $PREFIX\_tmp/$PREFIX.txt -o $PREFIX\_tmp/$PREFIX.pvalue.txt -p 0.1 >/dev/null
 #crest_peak_call INPUT=\'$PREFIX\_tmp/$PREFIX.pvalue.txt\' PREFIX=\'$PREFIX\' MIN_COV=$MIN_COV MIN_WIDTH=$MIN_WIDTH FDR=$FDRCUTOFF

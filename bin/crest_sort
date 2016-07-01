@@ -1,7 +1,5 @@
 #!/usr/bin/env Rscript
 
-#### crest_edger FIN_NAME=\"data/data.txt\" TREAT_ID=\"T1,T2,T3,T4,T5\" CONTROL_ID=\"C1,C2\" MIN_CPM=5 DIR="demo_tmp"
-
 # PART I - arguments
 args <- commandArgs(trailingOnly = TRUE)
 if(length(args) < 5){

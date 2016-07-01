@@ -4,6 +4,9 @@
 $ git clone https://github.com/r3fang/crest.git
 $ cd crest
 $ bash install.sh
+$ # check if input file is valid
+$ crest_input_check -i data/data.txt 
+$ crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo 
 ```
 
 ##Requirements
@@ -45,7 +48,7 @@ Note: To use crest, please be sure that the input matrix is in the required form
 
 ##FAQ
 
-1. **What is crest required input format?**  
+1. **What is valid input format for crest?**  
  
  |  | T1 | T2 | T3 | T4 | T5 | C1 | C2 |  
  |:------------------:|:-------------:|:-----:|:------:|:-------:|:-------:|:-------:|:-------:|
