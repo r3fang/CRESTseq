@@ -8,7 +8,7 @@ if [ -f ./bin/RRA ]; then
 	rm ./bin/RRA
 fi
 chmod +x ./bin/*
-cd rra; make; cd ..
+cd rra; make; cd ..;
 
 echo step 2. add `pwd`/bin to the PATH permanently
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

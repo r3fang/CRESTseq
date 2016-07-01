@@ -1,0 +1,55 @@
+#!/usr/bin/env Rscript
+
+# crest_overlap FIN_NAME=\"sgRNA_pair_sorted.txt\" CHROM=\"chr6\" START=30132134 END=32138339 BIN_SIZE=50 FOUT_NAME=\"bins.bed\"
+# PART I - check if packages already installed, if not exist
+if(!("GenomicRanges" %in% installed.packages()[,"Package"])){stop("R package GenomicRanges not installed")}
+#if(!("stringr" %in% installed.packages()[,"Package"])){stop("R package stringr not installed")}
+
+suppressMessages(library(GenomicRanges))
+#suppressMessages(library(stringr))
+
+# PART II - load in arguments
+args <- commandArgs(trailingOnly = TRUE)
+if(length(args) < 5){
+    stop("too few arguments.")
+}else{
+    for(i in 1:length(args)){
+		invisible(eval(parse(text=args[[i]])))
+    }
+}
+
+if(!exists("FIN_NAME"))   stop("argument FIN_NAME missing")
+if(!exists("CHROM"))   stop("argument CHROM missing")
+if(!exists("START"))   stop("argument START missing")
+if(!exists("END"))   stop("argument END missing")
+
+if(!file.exists(file.path(FIN_NAME))) stop(FIN_NAME, " does not exist")
+if(!(length(START)> 0 & is.numeric(START) & START%%1==0)) stop(START, " is an integer")
+if(!(length(END)> 0 & is.numeric(END) & END%%1==0)) stop(END, " is an integer")
+if(!file.exists(FIN_NAME)) stop(FIN_NAME, " does not exist")
+
+if(nrow(data <- read.table(FIN_NAME, head=TRUE, row.names=1))==0) stop("input is empty")
+coords <- as.data.frame(do.call(rbind, strsplit(as.character(rownames(data)), ":|-")))
+colnames(coords) <- c("chr", "start", "end")
+table <- cbind(coords, data)
+pairs.gr <- GRanges(seqnames = table[,1], ranges = IRanges(as.numeric(as.character(table[,2])), as.numeric(as.character(table[,3]))), score=table$score)
+
+# split given inqure region into bin
+tmp = seq(START, END, by=BIN_SIZE)
+bins.gr <- GRanges(seqnames = CHROM, ranges = IRanges(tmp, end = tmp+BIN_SIZE))
+bins.gr$name <- paste(paste(CHROM, tmp, sep=":"), tmp+BIN_SIZE, sep="-")
+
+## overlap
+if(nrow(ov <- as.data.frame(findOverlaps(bins.gr, pairs.gr, type="within")))==0) stop("found no overlap between screened region and sgRNA pairs")
+res <- data.frame(bin=bins.gr$name[ov$queryHits], score=pairs.gr$score[ov$subjectHits], subjectHits=ov$subjectHits)
+res <- res[order(res$subjectHits),]
+res$rank = 1:nrow(res)
+index <- do.call(rbind, lapply(split(res[,c(3,4)], res$subjectHits), function(x) x[1,]))
+res$chosen = 0
+res$chosen[index$rank] = 1
+
+write.table(data.frame(sgrna=1:nrow(res), symbol=res$bin, pool="list", p.high=res$score, prob=1, chosen=res$chosen), 
+			file = FOUT_NAME, append = FALSE, quote = FALSE, sep = "\t",
+            eol = "\n", na = "NA", dec = ".", row.names = FALSE,
+            col.names = TRUE, qmethod = c("escape", "double"),
+            fileEncoding = "")

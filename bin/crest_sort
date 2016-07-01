@@ -5,9 +5,6 @@ if(!("edgeR" %in% installed.packages()[,"Package"])){
 	stop("R package edgeR not installed")
 }
 suppressMessages(library(edgeR))
-#suppressMessages(library(GenomicRanges))
-#suppressMessages(library(locfit))
-#suppressMessages(library(stringr))
 
 # PART II - load in arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -23,14 +20,16 @@ if(!exists("FIN_NAME"))   stop("argument FIN_NAME missing")
 if(!exists("TREAT_ID"))   stop("argument TREAT_ID missing")
 if(!exists("CONTROL_ID")) stop("argument CONTROL_ID missing")
 if(!exists("DIR"))        stop("argument DIR missing")
+
 if(!dir.exists(file.path(DIR))) stop(DIR, " does not exist")
+if(!file.exists(FIN_NAME)) stop(FIN_NAME, " does not exist")
 output_file = paste(DIR, "sgRNA_pair_sorted.txt", sep="/")
 
 # PART IV - check input arguments
 if(nrow(data <- read.table(FIN_NAME, head=TRUE, row.names=1))==0) stop("input crest matrix is empty")
 if(length((TREAT_IDs=strsplit(TREAT_ID, ",")[[1]]))==0) stop("argument TREAT_ID must be seperated by comma without space")
 if(length((CONTROL_IDs=strsplit(CONTROL_ID, ",")[[1]]))==0) stop("argument CONTROL_ID must be seperated by comma without space")
-if(length((IDs = c(TREAT_IDs, CONTROL_IDs))) != ncol(data)) stop("TREAT_ID + CONTROL_ID must equal column number with input crest matrix")
+if(length((IDs = c(TREAT_IDs, CONTROL_IDs))) != ncol(data)) stop("TREAT_ID and CONTROL_ID has error in the input data")
 if(length((col_pos = match(TREAT_IDs, colnames(data)))) == 0) stop("argument TREAT_ID must match with column name of input crest-matrix")
 if(length((col_neg = match(CONTROL_IDs, colnames(data)))) == 0) stop("argument CONTROL_ID must match with column name of input crest-matrix")
 groups = rep(1, ncol(data))

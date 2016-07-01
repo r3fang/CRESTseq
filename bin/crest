@@ -24,8 +24,8 @@ crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o d
 Options: 
 	-h, --help                show this help message and exit.
 	-i  INPUT                 input crest-standard matrix.
-	-t  TREAT                 treatment sample ID, seperated by comma without space.
-	-c  CONTROL               control sample ID, seperated by comma without space.
+	-t  TREAT_ID              treatment sample ID, seperated by comma without space.
+	-c  CONTROL_ID            control sample ID, seperated by comma without space.
 	-r  REGION                region that CREST-seq performed against (e.g. chr6:1-100).
 	-o  PREFIX                prefix of outout files.
 	-m  MIN_CPM               sgRNA pairs with CPM (count per million) smaller than
@@ -132,8 +132,30 @@ fi
 
 re='^chr[0-9a-zA-Z_]*:[0-9]+-[0-9]+'
 if ! [[ $INQUIRE_REGION =~ $re ]] ; then
-   echo "error: -s '$INQUIRE_REGION' invalid format" >&2;
+   echo "error: -r '$INQUIRE_REGION' invalid format (e.g. chr1:1-100)" >&2;
    exit 1;
+fi
+
+IFS=':' read -a chr <<< "$INQUIRE_REGION"
+IFS='-' read -a pos <<< "${chr[1]}"
+
+REGION_CHR=${chr[0]}
+REGION_START=${pos[0]}
+REGION_END=${pos[1]}
+
+if [[ ! $REGION_START =~ ^-?[0-9]+$ ]]; then
+    echo "error: -r '$INQUIRE_REGION' invalid format (e.g. chr1:1-100)" >&2;
+    exit 1;
+fi
+
+if [[ ! $REGION_END =~ ^-?[0-9]+$ ]]; then
+    echo "error: -r '$INQUIRE_REGION' invalid format (e.g. chr1:1-100)" >&2;
+    exit 1;
+fi
+
+if [ $REGION_START -gt $REGION_END ]; then
+	echo "error: -r '$INQUIRE_REGION' start greater than the end" >&2;
+	exit 1;
 fi
 
 if [ -z ${PREFIX+x} ]; then 
@@ -190,6 +212,7 @@ echo Step1. rank sgRNA pairs based on it enrichment in the treatment samples
 crest_sort FIN_NAME=\"$INPUT\" TREAT_ID=\"$TREAT_ID\" CONTROL_ID=\"$CONTROL_ID\" MIN_CPM=$MIN_CPM DIR=\"$PREFIX\_tmp\"
 
 echo Step2. split the screend region $INQUIRE_REGION into a set of $BIN_SIZE bp bins and find its overlap pairs
+crest_overlap FIN_NAME=\"$PREFIX\_tmp/sgRNA_pair_sorted.txt\" CHROM=\"$REGION_CHR\" START=$REGION_START END=$REGION_END BIN_SIZE=$BIN_SIZE FOUT_NAME=\"$PREFIX\_tmp/bins.bed\"
 
 #crest_edger INQURE_REGION=\'$INQUIRE_REGION\' FIN_NAME=\'$INPUT\' GROUPS="c(2,2,2,2,2,1,1)" FOUT_NAME=\"$PREFIX\_tmp/$PREFIX.txt\" MIN_CPM=$MIN_CPM BIN_SIZE=$BIN_SIZE
 #RRA -i $PREFIX\_tmp/$PREFIX.txt -o $PREFIX\_tmp/$PREFIX.pvalue.txt -p 0.1 >/dev/null
