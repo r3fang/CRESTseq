@@ -1,8 +1,14 @@
+##Get Started
+
+```bash
+$ git clone https://github.com/r3fang/crest.git
+$ cd crest
+$ bash install.sh
+```
+
 ##Requirements
 - [samtools 1.2+](http://www.htslib.org/doc/samtools.html)
 - [Python 2.7+](https://www.python.org/download/releases/2.7/)
-- [R package edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html)
-- [R package GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html)
 
 ##Introduction
 
