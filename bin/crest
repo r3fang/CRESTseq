@@ -36,7 +36,7 @@ Options:
 	-p  FDRCUTOFF             FDR cutoff for a significant bin [0.05].
 	-l  MIN_WIDTH             a peak will be extended to MIN_WIDTH if shorter [1000].
 
-Note: To use crest, please be sure that the input matrix is in the required format.  
+Note: To use crest, please be sure that the input matrix is in the required format.
 EOF
 } 
 
@@ -208,17 +208,53 @@ if [ ! -d $PREFIX\_tmp ]; then
 	mkdir $PREFIX\_tmp
 fi
 
-echo Step1. rank sgRNA pairs based on it enrichment in the treatment samples
-crest_sort FIN_NAME=\"$INPUT\" TREAT_ID=\"$TREAT_ID\" CONTROL_ID=\"$CONTROL_ID\" MIN_CPM=$MIN_CPM DIR=\"$PREFIX\_tmp\"
+spin='-\|/'
 
-echo Step2. split the screend region $INQUIRE_REGION into a set of $BIN_SIZE bp bins and find its overlap pairs
-crest_overlap FIN_NAME=\"$PREFIX\_tmp/sgRNA_pair_sorted.txt\" CHROM=\"$REGION_CHR\" START=$REGION_START END=$REGION_END BIN_SIZE=$BIN_SIZE FOUT_NAME=\"$PREFIX\_tmp/bins.bed\"
+#echo Step1. rank sgRNA pairs based on it enrichment in the treatment samples
+crest_sort FIN_NAME=\"$INPUT\" TREAT_ID=\"$TREAT_ID\" CONTROL_ID=\"$CONTROL_ID\" MIN_CPM=$MIN_CPM DIR=\"$PREFIX\_tmp\" 2>/dev/null &
+pid=$! # Process Id of the previous running command
+i=0
+while kill -0 $pid 2>/dev/null
+do
+  i=$(( (i+1) %4 ))
+  printf "\r[*                   ] 1 %%"
+  sleep .1
+done
 
-#crest_edger INQURE_REGION=\'$INQUIRE_REGION\' FIN_NAME=\'$INPUT\' GROUPS="c(2,2,2,2,2,1,1)" FOUT_NAME=\"$PREFIX\_tmp/$PREFIX.txt\" MIN_CPM=$MIN_CPM BIN_SIZE=$BIN_SIZE
-#RRA -i $PREFIX\_tmp/$PREFIX.txt -o $PREFIX\_tmp/$PREFIX.pvalue.txt -p 0.1 >/dev/null
-#crest_peak_call INPUT=\'$PREFIX\_tmp/$PREFIX.pvalue.txt\' PREFIX=\'$PREFIX\' MIN_COV=$MIN_COV MIN_WIDTH=$MIN_WIDTH FDR=$FDRCUTOFF
-#
+#echo Step2. split the screend region $INQUIRE_REGION into a set of $BIN_SIZE bp bins and find its overlap pairs
+crest_overlap FIN_NAME=\"$PREFIX\_tmp/sgRNA_pair_sorted.txt\" CHROM=\"$REGION_CHR\" START=$REGION_START END=$REGION_END BIN_SIZE=$BIN_SIZE FOUT_NAME=\"$PREFIX\_tmp/bins.bed\" 2>/dev/null &
+pid=$! # Process Id of the previous running command
+i=0
+while kill -0 $pid 2>/dev/null
+do
+  i=$(( (i+1) %4 ))
+  printf "\r[******              ] 30%%"
+  sleep .1
+done
+
+
+RRA -i $PREFIX\_tmp/bins.bed -o $PREFIX\_tmp/bins_pvalue.bed  -p 0.1  > /dev/null 2>&1 &
+pid=$! # Process Id of the previous running command
+i=0
+while kill -0 $pid 2>/dev/null
+do
+  i=$(( (i+1) %4 ))
+  printf "\r[**********          ] 50%%"
+  sleep .1
+done
+
+
+sleep 5 2>/dev/null &
+pid=$! # Process Id of the previous running command
+i=0
+while kill -0 $pid 2>/dev/null
+do
+  i=$(( (i+1) %4 ))
+  printf "\r[******************  ] 90%%"
+  sleep .1
+done
+
+
 # cleanup
-# rm -r $PREFIX\_tmp
-
-
+rm -r $PREFIX\_tmp
+echo "Succeed!"
