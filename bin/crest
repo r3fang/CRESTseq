@@ -7,6 +7,7 @@ command -v crest_sort >/dev/null 2>&1 || { echo >&2 "crest requires crest_sort b
 command -v crest_overlap >/dev/null 2>&1 || { echo >&2 "crest requires crest_overlap but it is not installed. Aborting."; exit 1; }
 command -v crest_peak_call >/dev/null 2>&1 || { echo >&2 "crest requires crest_peak_call but it is not installed. Aborting."; exit 1; }
 command -v RRA >/dev/null 2>&1 || { echo >&2 "crest requires RRA but it is not installed. Aborting."; exit 1; }
+command -v python >/dev/null 2>&1 || { echo >&2 "crest requires python but it is not installed. Aborting."; exit 1; }
 
 # PART II usage info
 usage(){

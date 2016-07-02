@@ -9,10 +9,6 @@ $ crest_input_check -i data/data.txt
 $ crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo 
 ```
 
-##Requirements
-- [samtools 1.2+](http://www.htslib.org/doc/samtools.html)
-- [Python 2.7+](https://www.python.org/download/releases/2.7/)
-
 ##Introduction
 
 **crest** is an in-house Bioinformatics pipeline for CREST-seq analysis.
@@ -53,12 +49,24 @@ Note: To use crest, please be sure that the input matrix is in the required form
 ##FAQ
 
 1. **What is valid input format for crest?**  
+ In short, you can check if your input file is in the format required by crest by crest_input_check:
+ 
+ ```bash
+ $ crest_input_check -i data/data.txt
+ Succeed! data/data.txt is in valid crest-standard matrix format!
+ ```
+ 
+ In detail, crest input requires:
+ + the first row should be the name of samples' ID. 
+ + from the second row, the first column should be the deletion coordinates of sgRNA pairs. 
+ + from the second row, the rest of columns should be raw read counts (no normalization). 
+ + deletion coordinates must be valid (chr:start-end) and start must smaller than end.
+ 
+ Below is a valid crest input format:
  
  |  | T1 | T2 | T3 | T4 | T5 | C1 | C2 |  
  |:------------------:|:-------------:|:-----:|:------:|:-------:|:-------:|:-------:|:-------:|
- | chr6:30235161-30256924	|16	 |244	|96	 |12   |249	   |286	   |19
  | chr6:30235217-30237927	|5	 |121	|1	 |6	   |108	   |198	   |82
  | ...	|...	 |...	|...	 |...	   |...	   |...	   |...
  | chr6:30235672-30242444	|164 |833	|356 |10   |1294   |1471   |490
- | chr6:30236585-30243109	|6	 |94	|0	 |11   |130	   |306	   |309
 
