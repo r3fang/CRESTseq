@@ -243,7 +243,7 @@ do
   sleep .1
 done
 
-
+crest_peak_call INPUT=\'$PREFIX\_tmp/bins_pvalue.bed\' PREFIX=\'$PREFIX\' GOOD_SGRNA=3 MIN_WIDTH=$MIN_WIDTH CUTOFF=0.1
 sleep 5 2>/dev/null &
 pid=$! # Process Id of the previous running command
 i=0
@@ -254,7 +254,17 @@ do
   sleep .1
 done
 
+sleep 5 2>/dev/null &
+pid=$! # Process Id of the previous running command
+i=0
+while kill -0 $pid 2>/dev/null
+do
+  i=$(( (i+1) %4 ))
+  printf "\r[********************] 100%%"
+  sleep .1
+done
+echo
 
 # cleanup
-rm -r $PREFIX\_tmp
+#rm -r $PREFIX\_tmp
 echo "Succeed!"

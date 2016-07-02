@@ -1,40 +1,38 @@
 #!/usr/bin/env Rscript
 
-# Rscript crest_peak.R INPUT=\'low/crest/crest.bin.high.txt\' PREFIX=\'demo\' MIN_COV=3 MIN_WIDTH=1000 FDR=0.05 
+# Rscript crest_peak.R INPUT=\'low/crest/crest.bin.high.txt\' PREFIX=\'demo\' GOOD_SGRNA=3 MIN_WIDTH=1000 CUTOFF=0.1
 
-# PART I - ARGUMENTS
+# PART I - check if packages already installed, if not exist
+if(!("GenomicRanges" %in% installed.packages()[,"Package"])){stop("R package GenomicRanges not installed")}
+
+suppressMessages(library(GenomicRanges))
+
+# PART II - load in arguments
 args <- commandArgs(trailingOnly = TRUE)
 if(length(args) < 5){
     stop("too few arguments.")
 }else{
     for(i in 1:length(args)){
-		eval(parse(text=args[[i]]))
+		invisible(eval(parse(text=args[[i]])))
     }
 }
 
 if(!exists("INPUT")) stop("argument INPUT missing")
 if(!exists("PREFIX")) stop("argument PREFIX missing")
-if(!exists("MIN_COV")) stop("argument MIN_COV missing")
+if(!exists("GOOD_SGRNA")) stop("argument GOOD_SGRNA missing")
 if(!exists("MIN_WIDTH")) stop("argument MIN_WIDTH missing")
-if(!exists("FDR")) stop("argument FDR missing")
+if(!exists("CUTOFF")) stop("argument FDR missing")
+
 if(!file.exists(INPUT)) stop("file INPUT not exists")
-
-
-# PART II - check if packages exists, if not, install
-list.of.packages <- c("GenomicRanges", "siggenes")
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-if(length(new.packages)){
-	source("http://bioconductor.org/biocLite.R")
-	biocLite(new.packages, lib.loc = "~/R/local_library", lib="~/R/local_library")
-}
-
-# import pakcage
-suppressMessages(library(GenomicRanges))
-suppressMessages(library(siggenes))
+if(!(length(GOOD_SGRNA)> 0 & is.numeric(GOOD_SGRNA) & GOOD_SGRNA%%1==0 & GOOD_SGRNA>=0)) stop(GOOD_SGRNA, " is not a non-negative integer")
+if(!(length(MIN_WIDTH)> 0 & is.numeric(MIN_WIDTH) & MIN_WIDTH%%1==0 & MIN_WIDTH>0)) stop(MIN_WIDTH, " is not a positive integer")
+if(!(length(CUTOFF)> 0 & is.numeric(MIN_WIDTH) & CUTOFF>0)) stop(CUTOFF, " must be a positive number")
 
 # PART III main program
-bins <- read.table(INPUT, head=TRUE)
+# check the input
+if(nrow(bins <- read.table(INPUT, head=TRUE))==0){stop("crest_peak_call: input is empty")}
 if(length(which(colnames(bins) == c("group_id", "items_in_group", "lo_value", "p", "FDR", "goodsgrna"))) != ncol(bins))  stop("column name of INPUT is not valid")
+
 bins.tmp <- do.call(rbind, strsplit(as.character(bins$group_id), split=":|-"))
 bins.gr  <- GRanges(seqnames="chr6", IRanges(as.numeric(as.character(bins.tmp[,2])), as.numeric(as.character(bins.tmp[,3]))), score=-log(bins$FDR), FDR=bins$FDR, goodsgrna=bins$goodsgrna)
 
@@ -43,7 +41,7 @@ write.table(as.data.frame(bins.gr)[,c(1,2,3,6)], file = paste(PREFIX, ".bdg", se
                  col.names = FALSE, qmethod = c("escape", "double"),
                  fileEncoding = "")
 
-peaks.gr <- reduce(bins.gr[which(bins.gr$FDR <= FDR & bins.gr$goodsgrna >= MIN_COV)])
+peaks.gr <- reduce(bins.gr[which(bins.gr$score >= CUTOFF & bins.gr$goodsgrna >= GOOD_SGRNA)])
 peaks.gr[which(width(peaks.gr) < MIN_WIDTH)] <- resize(peaks.gr[which(width(peaks.gr) < MIN_WIDTH)], width=MIN_WIDTH, fix="center")
 write.table(as.data.frame(peaks.gr)[,c(1,2,3)], file =  paste(PREFIX, ".bed", sep=""), append = FALSE, quote = FALSE, sep = "\t",
                  eol = "\n", na = "NA", dec = ".", row.names = FALSE,

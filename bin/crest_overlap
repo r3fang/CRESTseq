@@ -3,10 +3,8 @@
 # crest_overlap FIN_NAME=\"sgRNA_pair_sorted.txt\" CHROM=\"chr6\" START=30132134 END=32138339 BIN_SIZE=50 FOUT_NAME=\"bins.bed\"
 # PART I - check if packages already installed, if not exist
 if(!("GenomicRanges" %in% installed.packages()[,"Package"])){stop("R package GenomicRanges not installed")}
-#if(!("stringr" %in% installed.packages()[,"Package"])){stop("R package stringr not installed")}
 
 suppressMessages(library(GenomicRanges))
-#suppressMessages(library(stringr))
 
 # PART II - load in arguments
 args <- commandArgs(trailingOnly = TRUE)
