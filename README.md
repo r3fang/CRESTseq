@@ -21,29 +21,33 @@ $ crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o
 $ crest
 
 Program: crest (CREST-seq analysis pipeline Ren Lab)
-Version: v06.26.2016
+Version: v07.02.2016
 Contact: Rongxin Fang <r3fang@ucsd.edu>
-Ren Lab: http://bioinformatics-renlab.ucsd.edu/rentrac/
+URL: https://github.com/r3fang/crest
 
-usage: crest [-h] [-i INPUT] [-r chr6:30132134-32138339] [-o PREFIX] [-m 5] [-s 50] [-c 3] [-p 0.05] [-l 1000]
+usage: crest [-h] [-i INPUT] [-t T1,T2,T3] [-c C1,C2,C3] [-r chr6:30132134-32138339] [-o PREFIX] [-m 5] [-s 50] [-n 3] [-p 0.05] [-l 1000]
 
 Example:
-crest -i data/data.txt -r chr6:30132134-32138339 -o demo
+crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo
 
 Options:
-	-h, --help                  show this help message and exit.
-	-i  INPUT                   input crest-standard matrix.
-	-r  INQUIRE_REGION          region that CREST-seq performed against.
-	-o  PREFIX                  prefix of outout file.
-	-m  MIN_CPM                 sgRNA pairs with CPM (count per million) smaller than
-	                            MIN_CPM will be filtered before analysis [5].
-	-s  BIN_SIZE                screened region INQUIRE_REGION will be partitioned into
-	                            a set of BIN_SIZE-bp bins [50].
-	-c  MIN_COV                 a bin is considered significant at least MIN_COV pairs span it [2].
-	-p  FDRCUTOFF               FDR cutoff for a significant bin [0.05].
-	-l  MIN_WIDTH               a peak will be extended to MIN_WIDTH if shorter [1000].
+  -- Required:
+      -i    STR     input crest-standard matrix.
+      -t    STR     treatment sample IDs, seperated by comma without space.
+      -c    STR     control sample IDs, seperated by comma without space.
+      -r    STR     region that CREST-seq performed against (e.g. chr1:1-100).
+      -o    STR     prefix of outout files.
+  -- Optional:
+      -m    INT     sgRNA pairs with CPM (count per million) smaller than [3]
+                    will be filtered before peak calling.
+      -s    INT     screened region -r will be splitted into bins of [50] bp.
+      -n    INT     a bin is considered significant with at least [3] pairs span it.
+      -p    FLOAT   score cutoff for a significant bin [0.1].
+      -l    INT     a peak will be extended to [1000] bp if shorter .
 
 Note: To use crest, please be sure that the input matrix is in the required format.
+      Check if your input is crest-required format: 'crest_input_check -i data/data.txt'
+
 ```
 
 ##FAQ

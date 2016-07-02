@@ -20,7 +20,18 @@ if [ ! -d $R_LIBS ]; then
 	mkdir $R_LIBS
 fi
 
-echo step 3. install required R packages \(locfit, stringr, edgeR, GenomicRanges\)
+echo step 3. install samtools_1.2
+command -v RRA >/dev/null 2>&1 || { 
+	wget https://github.com/samtools/samtools/releases/download/1.2/samtools-1.2.tar.bz2; 
+	tar -vxjf samtools-1.2.tar.bz2;
+	cd samtools-1.2;
+	make;
+	cd ..; 
+	cp samtools-1.2/samtools ./bin/;
+	rm samtools-1.2.tar.bz2
+}
+
+echo step 4. install required R packages \(locfit, stringr, edgeR, GenomicRanges\)
 # install locfit
 wget https://cran.r-project.org/src/contrib/locfit_1.5-9.1.tar.gz 
 R CMD INSTALL --clean -l $R_LIBS locfit_1.5-9.1.tar.gz
@@ -38,13 +49,12 @@ wget https://bioconductor.org/packages/release/bioc/src/contrib/zlibbioc_1.18.0.
 wget http://bioconductor.org/packages/3.1/bioc/src/contrib/BiocGenerics_0.14.0.tar.gz
 wget http://bioconductor.org/packages/3.1/bioc/src/contrib/XVector_0.8.0.tar.gz
 wget http://bioconductor.org/packages/3.1/bioc/src/contrib/GenomicRanges_1.20.8.tar.gz
-
 R CMD INSTALL --clean -l $R_LIBS BiocGenerics_0.14.0.tar.gz
 R CMD INSTALL --clean -l $R_LIBS zlibbioc_1.18.0.tar.gz
 R CMD INSTALL --clean -l $R_LIBS XVector_0.8.0.tar.gz
 R CMD INSTALL --clean -l $R_LIBS GenomicRanges_1.20.8.tar.gz
 
-echo step 4. clean up
+echo step 5. clean up
 rm locfit_1.5-9.1.tar.gz 
 rm magrittr_1.5.tar.gz
 rm stringr_1.0.0.tar.gz 

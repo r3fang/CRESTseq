@@ -3,7 +3,8 @@ set -e
 
 # PART I check weather softwares installed
 command -v R >/dev/null 2>&1 || { echo >&2 "crest requires R but it is not installed. Aborting."; exit 1; }
-command -v crest_edger >/dev/null 2>&1 || { echo >&2 "crest requires crest_edger but it is not installed. Aborting."; exit 1; }
+command -v crest_sort >/dev/null 2>&1 || { echo >&2 "crest requires crest_sort but it is not installed. Aborting."; exit 1; }
+command -v crest_overlap >/dev/null 2>&1 || { echo >&2 "crest requires crest_overlap but it is not installed. Aborting."; exit 1; }
 command -v crest_peak_call >/dev/null 2>&1 || { echo >&2 "crest requires crest_peak_call but it is not installed. Aborting."; exit 1; }
 command -v RRA >/dev/null 2>&1 || { echo >&2 "crest requires RRA but it is not installed. Aborting."; exit 1; }
 
@@ -12,7 +13,7 @@ usage(){
 cat << EOF
 
 Program: crest (CREST-seq analysis pipeline Ren Lab)
-Version: v06.26.2016
+Version: v07.02.2016
 Contact: Rongxin Fang <r3fang@ucsd.edu>
 URL: https://github.com/r3fang/crest
 
@@ -22,21 +23,23 @@ Example:
 crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo
 
 Options: 
-	-h, --help                show this help message and exit.
-	-i  INPUT                 input crest-standard matrix.
-	-t  TREAT_ID              treatment sample ID, seperated by comma without space.
-	-c  CONTROL_ID            control sample ID, seperated by comma without space.
-	-r  REGION                region that CREST-seq performed against (e.g. chr6:1-100).
-	-o  PREFIX                prefix of outout files.
-	-m  MIN_CPM               sgRNA pairs with CPM (count per million) smaller than
-	                          MIN_CPM will be filtered before analysis [5].
-	-s  BIN_SIZE              screened region INQUIRE_REGION will be partitioned into 
-	                          a set of BIN_SIZE-bp bins [50].
-	-n  MIN_COV               a bin is considered significant at least MIN_COV pairs span it [2].
-	-p  FDRCUTOFF             FDR cutoff for a significant bin [0.05].
-	-l  MIN_WIDTH             a peak will be extended to MIN_WIDTH if shorter [1000].
+  -- required
+       -i    STR     input crest-standard matrix.
+       -t    STR     treatment sample IDs, seperated by comma without space.
+       -c    STR     control sample IDs, seperated by comma without space.
+       -r    STR     region that CREST-seq performed against (e.g. chr1:1-100).
+       -o    STR     prefix of outout files.
+  -- optional          
+       -m    FLOAT   sgRNA pairs with CPM (count per million) smaller than [3] 
+                     will be filtered before peak calling.
+       -s    INT     screened region -r will be splitted into bins of [50] bp.
+       -n    INT     a bin is considered significant with at least [3] pairs span it.
+       -p    FLOAT   score cutoff for a significant bin [0.1].
+       -l    INT     a peak will be extended to [1000] bp if shorter .
 
 Note: To use crest, please be sure that the input matrix is in the required format.
+      Check if your input is crest-required format: 'crest_input_check -i data/data.txt'
+
 EOF
 } 
 
@@ -45,7 +48,8 @@ BIN_SIZE=50
 MIN_CPM=3
 FDRCUTOFF=0.05
 MIN_WIDTH=1000
-MIN_COV=2
+GOOD_SGRNA=3
+SCORE_CUTOFF=0.1
 
 # PART IV read in arguments
 while getopts ":i:t:c:r:o:m:s:n:p:l:" opt;
@@ -58,8 +62,8 @@ do
 		o) PREFIX=$OPTARG;;
 		m) MIN_CPM=$OPTARG;;
 		s) BIN_SIZE=$OPTARG;;
-		n) MIN_COV=$OPTARG;;
-		p) FDRCUTOFF=$OPTARG;;
+		n) GOOD_SGRNA=$OPTARG;;
+		p) SCORE_CUTOFF=$OPTARG;;
 		l) MIN_WIDTH=$OPTARG;;
 		\?) usage
 			echo "error: unrecoginized option -$OPTARG"
@@ -115,13 +119,13 @@ if [ -z ${BIN_SIZE+x} ]; then
 	exit 1;
 fi
 
-if [ -z ${MIN_COV+x} ]; then 
-	echo "error: missing variable -c MIN_COV" >&2;
+if [ -z ${GOOD_SGRNA+x} ]; then 
+	echo "error: missing variable -n GOOD_SGRNA" >&2;
 	exit 1;
 fi
 
-if [ -z ${FDRCUTOFF+x} ]; then 
-	echo "error: missing variable -p FDRCUTOFF" >&2;
+if [ -z ${SCORE_CUTOFF+x} ]; then 
+	echo "error: missing variable -p SCORE_CUTOFF" >&2;
 	exit 1;
 fi
 
@@ -164,32 +168,32 @@ if [ -z ${PREFIX+x} ]; then
 fi
 
 # check if input type
+re='^[0-9]+([.][0-9]+)?$'
+if ! [[ $MIN_CPM =~ $re ]] ; then
+   echo "error: -m '$MIN_CPM' is not valid number" >&2;
+   exit 1;
+fi
+if ! [[ $SCORE_CUTOFF =~ $re ]] ; then
+   echo "error: -p '$SCORE_CUTOFF' is not valid number" >&2;
+   exit 1;
+fi
+
 re='^[0-9]+$'
 if ! [[ $BIN_SIZE =~ $re ]] ; then
-   echo "error: -s '$BIN_SIZE' Not a number" >&2;
+   echo "error: -s '$BIN_SIZE' is not valid integer" >&2;
    exit 1;
 fi
 
-if ! [[ $MIN_CPM =~ $re ]] ; then
-   echo "error: -m '$MIN_CPM' Not a number" >&2;
-   exit 1;
-fi
-
-if ! [[ $MIN_COV =~ $re ]] ; then
-   echo "error: -m '$MIN_COV' Not a number" >&2;
+if ! [[ $GOOD_SGRNA =~ $re ]] ; then
+   echo "error: -n '$GOOD_SGRNA' is not valid integer" >&2;
    exit 1;
 fi
 
 if ! [[ $MIN_WIDTH =~ $re ]] ; then
-   echo "error: -m '$MIN_WIDTH' Not a number" >&2;
+   echo "error: -l '$MIN_WIDTH' is not valid integer" >&2;
    exit 1;
 fi
 
-re='^0.?[0-9]+'
-if ! [[ $FDRCUTOFF =~ $re ]] ; then
-   echo "error: -p '$FDRCUTOFF' Not a valid number, must between [0, 1]" >&2;
-   exit 1;
-fi
 
 echo $0 $* 2>&1 | tee $PREFIX.log 
 echo 2>&1 | tee -a $PREFIX.log
@@ -201,7 +205,7 @@ echo prefix of output file: $PREFIX 2>&1 | tee -a $PREFIX.log
 
 echo bin size: $BIN_SIZE 2>&1 | tee -a $PREFIX.log
 echo valid sgRNA pair min read count \(CPM\): $MIN_CPM 2>&1 | tee -a $PREFIX.log
-echo FDR cutoff: $FDRCUTOFF 2>&1 | tee -a $PREFIX.log
+echo score cutoff: $SCORE_CUTOFF 2>&1 | tee -a $PREFIX.log
 echo 2>&1 | tee -a $PREFIX.log
 
 if [ ! -d $PREFIX\_tmp ]; then
@@ -243,7 +247,7 @@ do
   sleep .1
 done
 
-crest_peak_call INPUT=\'$PREFIX\_tmp/bins_pvalue.bed\' PREFIX=\'$PREFIX\' GOOD_SGRNA=3 MIN_WIDTH=$MIN_WIDTH CUTOFF=0.1
+crest_peak_call INPUT=\'$PREFIX\_tmp/bins_pvalue.bed\' PREFIX=\'$PREFIX\' GOOD_SGRNA=$GOOD_SGRNA MIN_WIDTH=$MIN_WIDTH CUTOFF=$SCORE_CUTOFF
 sleep 5 2>/dev/null &
 pid=$! # Process Id of the previous running command
 i=0
@@ -266,5 +270,5 @@ done
 echo
 
 # cleanup
-#rm -r $PREFIX\_tmp
+rm -r $PREFIX\_tmp
 echo "Succeed!"
