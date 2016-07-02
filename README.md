@@ -62,7 +62,7 @@ Note: To use crest, please be sure that the input matrix is in the required form
  + from the second row, the rest of columns should be raw read counts (no normalization). 
  + deletion coordinates must be valid (chr:start-end) and start must smaller than end.
  
- Below is a valid crest input format:
+ Below is a valid crest input format example:
  
  |  | T1 | T2 | T3 | T4 | T5 | C1 | C2 |  
  |:------------------:|:-------------:|:-----:|:------:|:-------:|:-------:|:-------:|:-------:|
@@ -70,3 +70,11 @@ Note: To use crest, please be sure that the input matrix is in the required form
  | ...	|...	 |...	|...	 |...	   |...	   |...	   |...
  | chr6:30235672-30242444	|164 |833	|356 |10   |1294   |1471   |490
 
+2. **Error: terminate called after throwing an instance of 'std::bad_alloc'**
+ crest requires at least 2GB memory, the error is due to not enough memory.
+ 
+ 
+ 
+ 
+ 
+ 
