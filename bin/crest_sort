@@ -16,14 +16,12 @@ if(length(args) < 5){
     }
 }
 
-if(!exists("FIN_NAME"))   stop("argument FIN_NAME missing")
-if(!exists("TREAT_ID"))   stop("argument TREAT_ID missing")
-if(!exists("CONTROL_ID")) stop("argument CONTROL_ID missing")
-if(!exists("DIR"))        stop("argument DIR missing")
+if(!exists("FIN_NAME"))    stop("argument FIN_NAME missing")
+if(!exists("TREAT_ID"))    stop("argument TREAT_ID missing")
+if(!exists("CONTROL_ID"))  stop("argument CONTROL_ID missing")
+if(!exists("FOUT_NAME"))   stop("argument FOUT_NAME missing")
 
-if(!dir.exists(file.path(DIR))) stop(DIR, " does not exist")
 if(!file.exists(FIN_NAME)) stop(FIN_NAME, " does not exist")
-output_file = paste(DIR, "sgRNA_pair_sorted.txt", sep="/")
 
 # PART IV - check input arguments
 if(nrow(data <- read.table(FIN_NAME, head=TRUE, row.names=1))==0) stop("input crest matrix is empty")
@@ -45,7 +43,7 @@ table <- lrt$table
 table$score <- sign(table$logFC) * (log(table$PValue))
 table <- table[order(table$score),]
 table$rank <- 1:nrow(table)
-write.table(table[order(rownames(table)),], file = output_file, append = FALSE, quote = FALSE, sep = "\t",
+write.table(table[order(rownames(table)),], file = FOUT_NAME, append = FALSE, quote = FALSE, sep = "\t",
             eol = "\n", na = "NA", dec = ".", row.names = TRUE,
             col.names = TRUE, qmethod = c("escape", "double"),
             fileEncoding = "")

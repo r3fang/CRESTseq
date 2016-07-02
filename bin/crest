@@ -8,6 +8,9 @@ command -v crest_overlap >/dev/null 2>&1 || { echo >&2 "crest requires crest_ove
 command -v crest_peak_call >/dev/null 2>&1 || { echo >&2 "crest requires crest_peak_call but it is not installed. Aborting."; exit 1; }
 command -v RRA >/dev/null 2>&1 || { echo >&2 "crest requires RRA but it is not installed. Aborting."; exit 1; }
 command -v python >/dev/null 2>&1 || { echo >&2 "crest requires python but it is not installed. Aborting."; exit 1; }
+command -v python >/dev/null 2>&1 || { echo >&2 "crest requires python but it is not installed. Aborting."; exit 1; }
+command -v bedGraphToBigWig >/dev/null 2>&1 || { echo >&2 "crest requires bedGraphToBigWig but it is not installed. Aborting."; exit 1; }
+command -v fetchChromSizes >/dev/null 2>&1 || { echo >&2 "crest requires fetchChromSizes but it is not installed. Aborting."; exit 1; }
 
 # PART II usage info
 usage(){
@@ -29,6 +32,7 @@ Options:
        -t    STR     treatment sample IDs, seperated by comma without space.
        -c    STR     control sample IDs, seperated by comma without space.
        -r    STR     region that CREST-seq performed against (e.g. chr1:1-100).
+       -g    STR     name of genome, e.g.: hg38, hg18, mm9. 
        -o    STR     prefix of outout files.
   -- optional          
        -m    FLOAT   sgRNA pairs with CPM (count per million) smaller than [3] 
@@ -53,13 +57,14 @@ GOOD_SGRNA=3
 SCORE_CUTOFF=0.1
 
 # PART IV read in arguments
-while getopts ":i:t:c:r:o:m:s:n:p:l:" opt;
+while getopts ":i:t:c:r:g:o:m:s:n:p:l:" opt;
 do
 	case "$opt" in
 		i) INPUT=$OPTARG;;
 		t) TREAT_ID=$OPTARG;;
 		c) CONTROL_ID=$OPTARG;;
 		r) INQUIRE_REGION=$OPTARG;;
+		g) GENOME=$OPTARG;;
 		o) PREFIX=$OPTARG;;
 		m) MIN_CPM=$OPTARG;;
 		s) BIN_SIZE=$OPTARG;;
@@ -102,6 +107,11 @@ fi
 
 if [ -z ${INQUIRE_REGION+x} ]; then 
 	echo "error: missing variable -r INQUIRE_REGION" >&2;
+	exit 1;
+fi
+
+if [ -z ${GENOME+x} ]; then 
+	echo "error: missing variable -g GENOME" >&2;
 	exit 1;
 fi
 
@@ -203,6 +213,7 @@ echo treatment samples ID: $TREAT_ID 2>&1 | tee -a $PREFIX.log
 echo control samples ID: $CONTROL_ID 2>&1 | tee -a $PREFIX.log
 echo screened region: $INQUIRE_REGION 2>&1 | tee -a $PREFIX.log
 echo prefix of output file: $PREFIX 2>&1 | tee -a $PREFIX.log
+echo genome: $GENOME 2>&1 | tee -a $PREFIX.log
 
 echo bin size: $BIN_SIZE 2>&1 | tee -a $PREFIX.log
 echo valid sgRNA pair min read count \(CPM\): $MIN_CPM 2>&1 | tee -a $PREFIX.log
@@ -213,64 +224,73 @@ if [ ! -d $PREFIX\_tmp ]; then
 	mkdir $PREFIX\_tmp
 fi
 
-spin='-\|/'
+fetchChromSizes $GENOME > $PREFIX\_tmp/$GENOME.txt 
+[ ! -f $PREFIX\_tmp/$GENOME.txt ] || [ ! -s $PREFIX\_tmp/$GENOME.txt ] && { echo -e "\nFail to fetch chrom.sizes information from UCSC for the genome -g $GENOME. Aborting."; exit 1;}
 
 #echo Step1. rank sgRNA pairs based on it enrichment in the treatment samples
-crest_sort FIN_NAME=\"$INPUT\" TREAT_ID=\"$TREAT_ID\" CONTROL_ID=\"$CONTROL_ID\" MIN_CPM=$MIN_CPM DIR=\"$PREFIX\_tmp\" 2>/dev/null &
-pid=$! # Process Id of the previous running command
-i=0
-while kill -0 $pid 2>/dev/null
+crest_sort FIN_NAME=\"$INPUT\" TREAT_ID=\"$TREAT_ID\" CONTROL_ID=\"$CONTROL_ID\" MIN_CPM=$MIN_CPM FOUT_NAME=\"$PREFIX\_tmp/sgRNA_pair_sorted.txt\" >/dev/null 2>&1 &
+while kill -0 $! 2>/dev/null
 do
-  i=$(( (i+1) %4 ))
   printf "\r[*                   ] 1 %%"
   sleep .1
 done
+[ ! -f $PREFIX\_tmp/sgRNA_pair_sorted.txt ] || [ ! -s $PREFIX\_tmp/sgRNA_pair_sorted.txt ] && { echo -e "\nerror: crest_sort fais to sort sgRNA pairs."; exit 1;}
 
 #echo Step2. split the screend region $INQUIRE_REGION into a set of $BIN_SIZE bp bins and find its overlap pairs
-crest_overlap FIN_NAME=\"$PREFIX\_tmp/sgRNA_pair_sorted.txt\" CHROM=\"$REGION_CHR\" START=$REGION_START END=$REGION_END BIN_SIZE=$BIN_SIZE FOUT_NAME=\"$PREFIX\_tmp/bins.bed\" 2>/dev/null &
-pid=$! # Process Id of the previous running command
-i=0
-while kill -0 $pid 2>/dev/null
+crest_overlap FIN_NAME=\"$PREFIX\_tmp/sgRNA_pair_sorted.txt\" CHROM=\"$REGION_CHR\" START=$REGION_START END=$REGION_END BIN_SIZE=$BIN_SIZE FOUT_NAME=\"$PREFIX\_tmp/bins.bed\" >/dev/null 2>&1 &
+while kill -0 $! 2>/dev/null
 do
-  i=$(( (i+1) %4 ))
   printf "\r[******              ] 30%%"
   sleep .1
 done
+[ ! -f $PREFIX\_tmp/bins.bed ] || [ ! -s $PREFIX\_tmp/bins.bed ] && { echo -e "\nerror: crest_overlap fais to generate overlaps between bins and sgRNA pairs."; exit 1;}
 
 
-RRA -i $PREFIX\_tmp/bins.bed -o $PREFIX\_tmp/bins_pvalue.bed  -p 0.1  > /dev/null &
-pid=$! # Process Id of the previous running command
-i=0
-while kill -0 $pid 2>/dev/null
+#echo Step3. generate p value for each genomic bin
+RRA -i $PREFIX\_tmp/bins.bed -o $PREFIX\_tmp/bins_pvalue.bed -p 0.1 >/dev/null 2>&1 &
+while kill -0 $! 2>/dev/null
 do
-  i=$(( (i+1) %4 ))
   printf "\r[**********          ] 50%%"
   sleep .1
 done
+[ ! -f $PREFIX\_tmp/bins_pvalue.bed ] || [ ! -s $PREFIX\_tmp/bins_pvalue.bed ] && { echo -e "\nerror: RRA fais to generate p value for bins."; exit 1;}
 
-crest_peak_call INPUT=\'$PREFIX\_tmp/bins_pvalue.bed\' PREFIX=\'$PREFIX\' GOOD_SGRNA=$GOOD_SGRNA MIN_WIDTH=$MIN_WIDTH CUTOFF=$SCORE_CUTOFF
-sleep 5 2>/dev/null &
-pid=$! # Process Id of the previous running command
-i=0
-while kill -0 $pid 2>/dev/null
+#echo Step4. call peak
+crest_peak_call INPUT=\'$PREFIX\_tmp/bins_pvalue.bed\' PREFIX=\'$PREFIX\' GOOD_SGRNA=$GOOD_SGRNA MIN_WIDTH=$MIN_WIDTH CUTOFF=$SCORE_CUTOFF >/dev/null 2>&1 &
+while kill -0 $! 2>/dev/null
 do
-  i=$(( (i+1) %4 ))
-  printf "\r[******************  ] 90%%"
+  printf "\r[**************      ] 80%%"
   sleep .1
 done
+[ ! -f $PREFIX.bed ] || [ ! -s $PREFIX.bed ] && { echo -e "\nerror: crest_peak_call fais to call peaks."; exit 1;}
+[ ! -f $PREFIX.bdg ] || [ ! -s $PREFIX.bdg ] && { echo -e "\nerror: crest_peak_call fais to call peaks."; exit 1;}
 
-
-sleep 2 2>/dev/null &
-pid=$! # Process Id of the previous running command
-i=0
-while kill -0 $pid 2>/dev/null
+#echo Step4. convert .beg to .bigWig
+sort -k1,1 -k2,2n $PREFIX.bdg > $PREFIX.sorted.bdg &
+while kill -0 $! 2>/dev/null
 do
-  i=$(( (i+1) %4 ))
+  printf "\r[*****************   ] 90%%"
+  sleep .1
+done
+[ ! -f $PREFIX.sorted.bdg ] || [ ! -s $PREFIX.sorted.bdg ] && { echo -e "\nerror: fail to sort .bdg file."; exit 1;}
+
+bedGraphToBigWig $PREFIX.sorted.bdg $PREFIX\_tmp/$GENOME.txt $PREFIX.bw &
+while kill -0 $! 2>/dev/null
+do
+  printf "\r[******************* ] 95%%"
+  sleep .1
+done
+[ ! -f $PREFIX.bw ] || [ ! -s $PREFIX.bw ] && { echo -e "\nerror: fail to generate .bw file."; exit 1;}
+
+sleep 3 2>/dev/null &
+while kill -0 $! 2>/dev/null
+do
   printf "\r[********************] 100%%"
   sleep .1
 done
 echo
 
-# cleanup
 rm -r $PREFIX\_tmp
+rm $PREFIX.sorted.bdg 
+rm $PREFIX.bdg
 echo "Succeed!"
