@@ -253,7 +253,7 @@ do
   printf "\r[**********          ] 50%%"
   sleep .1
 done
-[ ! -f $PREFIX\_tmp/bins_pvalue.bed ] || [ ! -s $PREFIX\_tmp/bins_pvalue.bed ] && { echo -e "\nerror: RRA fais to generate p value for bins."; exit 1;}
+[ ! -f $PREFIX\_tmp/bins_pvalue.bed ] || [ ! -s $PREFIX\_tmp/bins_pvalue.bed ] && { echo -e "\nerror: RRA fails to generate p-value for bins."; exit 1;}
 
 #echo Step4. call peak
 crest_peak_call INPUT=\'$PREFIX\_tmp/bins_pvalue.bed\' PREFIX=\'$PREFIX\' GOOD_SGRNA=$GOOD_SGRNA MIN_WIDTH=$MIN_WIDTH CUTOFF=$SCORE_CUTOFF >/dev/null 2>&1 &

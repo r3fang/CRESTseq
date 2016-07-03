@@ -70,8 +70,10 @@ Note: To use crest, please be sure that the input matrix is in the required form
  | ...	|...	 |...	|...	 |...	   |...	   |...	   |...
  | chr6:30235672-30242444	|164 |833	|356 |10   |1294   |1471   |490
 
-2. **Error: terminate called after throwing an instance of 'std::bad_alloc'**
- crest requires at least 2GB memory, the error is due to not enough memory.
+2. **what is 'error: RRA fais to generate p value for bins.'**  
+ crest requires at least 3GB memory, the error is due to not enough memory.
+ 
+ 
  
  
  
