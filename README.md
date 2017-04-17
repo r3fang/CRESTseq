@@ -1,4 +1,4 @@
-# Installation
+# Install
 
 **crest** is a simple-version in-house pipeline for CREST-seq analysis which requires R,  R packages (locfit, stringr, edgeR, GenomicRanges), samtools (1.2), python.
 
