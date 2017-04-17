@@ -1,6 +1,6 @@
 ##Get Started
 
-```bash
+```sh
 $ git clone https://github.com/r3fang/crest.git
 $ cd crest
 $ bash install.sh
