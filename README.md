@@ -12,7 +12,8 @@
 | samtools (1.2) | https://sourceforge.net/projects/samtools/files/samtools/1.2/  |
 | python (2.7) | https://www.python.org/download/releases/2.7/ |
 
-The **installation** contains the following steps:
+
+**The installation contains the following steps:**
 * [clone] - clone the repertoire
 ```sh
 git clone https://github.com/r3fang/crest.git
