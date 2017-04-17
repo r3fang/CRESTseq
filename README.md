@@ -1,4 +1,4 @@
-##Get Started
+#Get Started
 
 ```sh
 $ git clone https://github.com/r3fang/crest.git
@@ -10,7 +10,7 @@ $ crest_input_check -i data/data.txt
 $ crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo 
 ```
 
-##Introduction
+#Introduction
 
 **crest** is a simple-version in-house pipeline for CREST-seq analysis.
 
