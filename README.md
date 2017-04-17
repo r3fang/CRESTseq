@@ -107,7 +107,7 @@ Note: To use crest, please be sure that the input matrix is in the required form
 ```
 
 # Citation
-Diao Y\*, Fang R.\*, Li B.\*, Meng Z., Yu J., Qiu Y., Lin K., Huang H., Liu T., Marina R.J., Jung I., Shen Y., Guan K., Ren B. A tiling-deletion-based genetic screen for cis-regulatory element identification in mammalian cells. Nature Methods (2017) doi:10.1038/nmeth.4264
+Diao Y\*, Fang R.\*, Li B.\*, Meng Z., Yu J., Qiu Y., Lin K., Huang H., Liu T., Marina R.J., Jung I., Shen Y., Guan K., Ren B. A tiling-deletion-based genetic screen for cis-regulatory element identification in mammalian cells. Nature Methods (2017) doi:10.1038/nmeth.4264 (\* contributed equally)
 
 # Licence
 MIT
