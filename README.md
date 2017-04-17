@@ -1,28 +1,16 @@
-# Easy start
-
-```sh
-$ git clone https://github.com/r3fang/crest.git
-$ cd crest
-$ bash install.sh
-# if install fails, you might have to install manually as shown in FAQ
-$ # check if input file is in valid format
-$ crest_input_check -i data/data.txt 
-$ crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo 
-```
-
-# Hard start
+# Installation
 
 **crest** requires R,  R packages (locfit, stringr, edgeR, GenomicRanges), samtools (1.2), python.
 
 | Dependency | URL |
 | ------ | ------ |
-| R | [https://www.r-project.org/] [PlDb] |
-| locfit (R)| [https://www.bioconductor.org/packages/release/bioc/html/flowFit.html] [PlGh] |
-| stringr (R)| [https://cran.r-project.org/web/packages/stringr/vignettes/stringr.html] [PlGd] |
-| edgeR (R)| [https://bioconductor.org/packages/release/bioc/html/edgeR.html] [PlOd] |
-| GenomicRanges (R) | [https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html] [PlMe] |
-| samtools (1.2) | [https://sourceforge.net/projects/samtools/files/samtools/1.2/] [PlGa] |
-| python (2.7) | [https://www.python.org/download/releases/2.7/] [PlGa] |
+| R | https://www.r-project.org/ |
+| locfit (R)| https://www.bioconductor.org/packages/release/bioc/html/flowFit.html |
+| stringr (R)| https://cran.r-project.org/web/packages/stringr/vignettes/stringr.html |
+| edgeR (R)| https://bioconductor.org/packages/release/bioc/html/edgeR.html |
+| GenomicRanges (R) | https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html  |
+| samtools (1.2) | https://sourceforge.net/projects/samtools/files/samtools/1.2/  |
+| python (2.7) | https://www.python.org/download/releases/2.7/ |
 
 The **installation** contains the following steps:
 * [clone] - clone the repertoire
