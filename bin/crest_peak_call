@@ -34,7 +34,7 @@ if(nrow(bins <- read.table(INPUT, head=TRUE))==0){stop("crest_peak_call: input i
 if(length(which(colnames(bins) == c("group_id", "items_in_group", "lo_value", "p", "FDR", "goodsgrna"))) != ncol(bins))  stop("column name of INPUT is not valid")
 
 bins.tmp <- do.call(rbind, strsplit(as.character(bins$group_id), split=":|-"))
-bins.gr  <- GRanges(seqnames="chr6", IRanges(as.numeric(as.character(bins.tmp[,2])), as.numeric(as.character(bins.tmp[,3]))), score=-log(bins$FDR), FDR=bins$FDR, goodsgrna=bins$goodsgrna)
+bins.gr  <- GRanges(seqnames=bins.tmp[,1], IRanges(as.numeric(as.character(bins.tmp[,2])), as.numeric(as.character(bins.tmp[,3]))), score=-log(bins$FDR), FDR=bins$FDR, goodsgrna=bins$goodsgrna)
 
 write.table(as.data.frame(bins.gr)[,c(1,2,3,6)], file = paste(PREFIX, ".bdg", sep=""), append = FALSE, quote = FALSE, sep = "\t",
                  eol = "\n", na = "NA", dec = ".", row.names = FALSE,
