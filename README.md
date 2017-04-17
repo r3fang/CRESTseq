@@ -1,6 +1,6 @@
 # Installation
 
-**crest** requires R,  R packages (locfit, stringr, edgeR, GenomicRanges), samtools (1.2), python.
+**crest** is a simple-version in-house pipeline for CREST-seq analysis which requires R,  R packages (locfit, stringr, edgeR, GenomicRanges), samtools (1.2), python.
 
 | Dependency | URL |
 | ------ | ------ |
@@ -71,7 +71,7 @@ R CMD INSTALL --clean -l $R_LIBS XVector_0.8.0.tar.gz
 R CMD INSTALL --clean -l $R_LIBS GenomicRanges_1.20.8.tar.gz
 ```
 
-**crest** is a simple-version in-house pipeline for CREST-seq analysis.
+# Get started
 
 ```
 $ crest
