@@ -1,4 +1,4 @@
-#Get Started
+# Easy start
 
 ```sh
 $ git clone https://github.com/r3fang/crest.git
@@ -10,7 +10,78 @@ $ crest_input_check -i data/data.txt
 $ crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo 
 ```
 
-#Introduction
+# Hard start
+
+**crest** requires R,  R packages (locfit, stringr, edgeR, GenomicRanges), samtools (1.2), python.
+
+| Dependency | URL |
+| ------ | ------ |
+| R | [https://www.r-project.org/] [PlDb] |
+| locfit (R)| [https://www.bioconductor.org/packages/release/bioc/html/flowFit.html] [PlGh] |
+| stringr (R)| [https://cran.r-project.org/web/packages/stringr/vignettes/stringr.html] [PlGd] |
+| edgeR (R)| [https://bioconductor.org/packages/release/bioc/html/edgeR.html] [PlOd] |
+| GenomicRanges (R) | [https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html] [PlMe] |
+| samtools (1.2) | [https://sourceforge.net/projects/samtools/files/samtools/1.2/] [PlGa] |
+| python (2.7) | [https://www.python.org/download/releases/2.7/] [PlGa] |
+
+The **installation** contains the following steps:
+* [clone] - clone the repertoire
+```sh
+git clone https://github.com/r3fang/crest.git
+```
+* [compile] - compile RRA and other programs
+```sh
+if [ -f ./bin/RRA ]; then
+	rm ./bin/RRA
+fi
+chmod +x ./bin/*
+cd rra; make; cd ..;
+```
+
+* [path] - add the ./bin folder to .bash_profile
+```
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+echo "export PATH=\$PATH:$DIR/bin" >> ~/.bash_profile
+bash ~/.bash_profile
+```
+
+* [samtools] - install samtools if not installed
+```sh
+command -v samtools >/dev/null 2>&1 || {
+	wget https://github.com/samtools/samtools/releases/download/1.2/samtools-1.2.tar.bz2;
+	tar -vxjf samtools-1.2.tar.bz2;
+	cd samtools-1.2;
+	make;
+	cd ..;
+	cp samtools-1.2/samtools ./bin/;
+	rm samtools-1.2.tar.bz2
+}
+```
+
+* [R packages] - install R packages
+```sh
+# install locfit
+wget https://cran.r-project.org/src/contrib/locfit_1.5-9.1.tar.gz
+R CMD INSTALL --clean -l $R_LIBS locfit_1.5-9.1.tar.gz
+# install stringr and its dependencies
+wget https://cran.r-project.org/src/contrib/magrittr_1.5.tar.gz
+R CMD INSTALL --clean -l $R_LIBS magrittr_1.5.tar.gz
+wget https://cran.r-project.org/src/contrib/stringr_1.0.0.tar.gz
+R CMD INSTALL --clean -l $R_LIBS stringr_1.0.0.tar.gz
+# install edgeR
+wget https://bioconductor.org/packages/release/bioc/src/contrib/edgeR_3.14.0.tar.gz
+R CMD INSTALL --clean -l $R_LIBS edgeR_3.14.0.tar.gz
+
+# install GenomicRanges and its depednencies (or use bioconductor)
+wget https://bioconductor.org/packages/release/bioc/src/contrib/zlibbioc_1.18.0.tar.gz
+wget http://bioconductor.org/packages/3.1/bioc/src/contrib/BiocGenerics_0.14.0.tar.gz
+wget http://bioconductor.org/packages/3.1/bioc/src/contrib/XVector_0.8.0.tar.gz
+wget http://bioconductor.org/packages/3.1/bioc/src/contrib/GenomicRanges_1.20.8.tar.gz
+R CMD INSTALL --clean -l $R_LIBS BiocGenerics_0.14.0.tar.gz
+R CMD INSTALL --clean -l $R_LIBS zlibbioc_1.18.0.tar.gz
+R CMD INSTALL --clean -l $R_LIBS XVector_0.8.0.tar.gz
+R CMD INSTALL --clean -l $R_LIBS GenomicRanges_1.20.8.tar.gz
+```
 
 **crest** is a simple-version in-house pipeline for CREST-seq analysis.
 
