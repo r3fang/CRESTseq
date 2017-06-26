@@ -85,7 +85,7 @@ URL: https://github.com/r3fang/crest
 usage: crest [-h] [-i INPUT] [-t T1,T2,T3] [-c C1,C2,C3] [-r chr6:30132134-32138339] [-o PREFIX] [-m 5] [-s 50] [-n 3] [-p 0.05] [-l 1000]
 
 Example:
-crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo
+crest -i data/data.txt -t T1,T2,T3,T4,T5 -c C1,C2 -r chr6:30132134-32138339 -o demo -g hg19
 
 Options:
   -- Required:
