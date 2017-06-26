@@ -290,7 +290,7 @@ do
 done
 echo
 
-rm -r $PREFIX\_tmp
+#rm -r $PREFIX\_tmp
 rm $PREFIX.sorted.bdg 
 rm $PREFIX.bdg
 echo "Succeed!"
